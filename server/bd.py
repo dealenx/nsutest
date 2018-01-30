@@ -1,17 +1,45 @@
 import mysql.connector 
 import datetime 
+import json
 
-cnx = mysql.connector.connect(host='localhost', 
-database='pythonweb', 
-user='root', 
-password='1040113') 
-cursor = cnx.cursor() 
 
-cursor.execute("SELECT * FROM s_tasks where id = 1") 
+def loadProgram(data):
+	print('loadProgram')
 
-results = cursor.fetchall() 
+	
+	cursor = conn.cursor()
 
-print(results) 
+	cursor.execute("insert into s_tasks(lang, time) values(5, sysdate());")
+	conn.commit()
+	print(data)
+	
+def loadTestResult():
+	print('loadTestResult') 
+	
+def getProgByID(id):
+	print('getProgByID') 
+	cursor = conn.cursor() 
+	cursor.execute("SELECT * FROM s_tasks where id = " + str(id)) 
+	results = cursor.fetchall() 
+	print(results)
+	cursor.close() 
 
-cursor.close() 
-cnx.close()
+if __name__ == "__main__":
+	conn = mysql.connector.connect(host='localhost', 
+	database='pythonweb', 
+	user='root', 
+	password='1040113') 
+	
+	jsonData = '{ "file_name": "main.cpp", "uid": "1", "lang": "1", "source": "void main()"}'
+	jsonToPython = json.loads(jsonData)
+	
+	data = {
+		'file_name': jsonToPython["file_name"],
+		'uid': int(jsonToPython["uid"]),
+		'lang': int(jsonToPython["lang"]),
+		'source': jsonToPython["source"],
+		'json_data': jsonToPython
+	}
+	loadProgram(data)
+	
+	conn.close()
