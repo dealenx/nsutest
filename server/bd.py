@@ -22,17 +22,36 @@ def loadProgram(data):
 	conn.commit()
 	print(data)
 	
+	
 def loadTestResult():
 	print('loadTestResult') 
 	
 def getProgByID(id):
 	print('getProgByID') 
 	cursor = conn.cursor() 
-	cursor.execute("SELECT * FROM s_tasks where id = " + str(id)) 
-	results = cursor.fetchall() 
-	print(results)
-	cursor.close() 
-
+	cursor.execute("SELECT id, lang, file_name, source, time, client_out, uid  FROM s_tasks where id = " + str(id)) 
+	row = cursor.fetchone()
+	while row is not None:
+		dataArray = {
+			'id': row[0],
+			'lang': row[1],
+			'file_name': row[2],
+			'source': row[3],
+			'time': row[4],
+			'client_out': row[5],
+			'uid': row[6],
+		}
+		row = cursor.fetchone()
+	cursor.close()
+	data = '{ "id": "' + str(dataArray["id"]) +  '", \
+	"lang": "' + str(dataArray["lang"]) +  '", \
+	"file_name": "' + str(dataArray["file_name"]) +  '", \
+	"source": "' + str(dataArray["source"]) +  '", \
+	"time": "' + str(dataArray["time"]) +  '", \
+	"client_out": "' + str(dataArray["client_out"]) +  '", \
+	"uid": "' + str(dataArray["uid"]) +  '" } ' 
+	return(data)
+	
 if __name__ == "__main__":
 	conn = mysql.connector.connect(host='localhost', 
 	database='pythonweb', 
@@ -43,5 +62,5 @@ if __name__ == "__main__":
 	jsonData = '{ "file_name": "main.cpp", "uid": "1", "lang": "1", "source": "void main()"}'
 	loadProgram(jsonData)
 	'''
-	getProgByID(14)
+	print(getProgByID(14))
 	conn.close()
