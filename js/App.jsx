@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import axios from 'axios'
 
 import Button from 'react-bootstrap/lib/Button'
-import PageHeader from 'react-bootstrap/lib/PageHeader'
 import Well from 'react-bootstrap/lib/Well'
 import Grid  from 'react-bootstrap/lib/Grid'
 import Navbar  from 'react-bootstrap/lib/Navbar'
@@ -14,13 +13,13 @@ import HelpBlock from 'react-bootstrap/lib/HelpBlock'
 
 export default class App extends Component {
     constructor() {
-      super();
-      this.state = {
-          tasks: null,
-          compilers: null,
-      };
-      this.reloadTasks = this.reloadTasks.bind(this);
-      this.reloadCompilers = this.reloadCompilers.bind(this);
+        super();
+        this.state = {
+            tasks: null,
+            compilers: null,
+        };
+        this.reloadTasks = this.reloadTasks.bind(this);
+        this.reloadCompilers = this.reloadCompilers.bind(this);
     }
 
     reloadTasks() {
@@ -48,13 +47,15 @@ export default class App extends Component {
     }
 
     sendProgram(e) {
-        let file_ = new FormData();
-        file_.append('file', e.target.files[0]);
+        // let file_ = new FormData();
+        // file_.append('file', e.target.files[0]);
         const data = {
-            task: document.getElementById("taskName").value,
-            text: document.getElementById("textarea").value,
-            file: file_,
-            compiler: document.getElementById("compilerName").value
+            file_name: document.getElementById("fileName").value,
+            uid: 1,
+            task_id: document.getElementById("taskName").value,
+            lang: document.getElementById("compilerName").value,
+            source: document.getElementById("programCode").value,
+            // file: file_
         };
         axios.post('/program/', data)
             .then(function (response) {
@@ -75,7 +76,6 @@ export default class App extends Component {
                 </Navbar.Header>
             </Navbar>
             <Grid>
-                <PageHeader>Check task <small>using nsu-test-app</small></PageHeader>
                 <div>
                     <Well bsSize="large">
                         <FormGroup controlId="taskName">
@@ -84,11 +84,20 @@ export default class App extends Component {
                                 {this.state.tasks}
                             </FormControl>
                         </FormGroup>
-                        <FormGroup controlId="formControlsTextarea">
+                        <FormGroup controlId="fileName">
+                            <ControlLabel>Enter the file name</ControlLabel>
+                            <FormControl
+                                type="text"
+                                placeholder="Enter text"
+                            />
+                            <FormControl.Feedback />
+                            <HelpBlock>If you insert your code into the form below</HelpBlock>
+                        </FormGroup>
+                        <FormGroup controlId="programCode">
                             <ControlLabel>Code area</ControlLabel>
                             <FormControl componentClass="textarea" placeholder="Paste your code here" />
                         </FormGroup>
-                        <FormGroup controlId="formControlsFile">
+                        <FormGroup controlId="file">
                             <ControlLabel>Upload file</ControlLabel>
                             <input type="file" id="file" name="file" />
                             <HelpBlock>Attach file without copying</HelpBlock>
