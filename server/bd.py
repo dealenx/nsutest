@@ -6,10 +6,19 @@ import json
 def loadProgram(data):
 	print('loadProgram')
 
-	
 	cursor = conn.cursor()
+	
+	jsonToPython = json.loads(data)
+	
+	dataArray = {
+		'file_name': jsonToPython["file_name"],
+		'uid': jsonToPython["uid"],
+		'lang': jsonToPython["lang"],
+		'source': jsonToPython["source"],
+		'json_data': jsonToPython
+	}
 
-	cursor.execute("insert into s_tasks(lang, time) values(5, sysdate());")
+	cursor.execute("insert into s_tasks(lang, time, file_name, uid, state, source) values(" + dataArray["lang"] + ", sysdate(), '" + dataArray["file_name"] + "', " + dataArray["uid"] + ", 'wait', '" + dataArray["source"] + "');")
 	conn.commit()
 	print(data)
 	
@@ -30,16 +39,9 @@ if __name__ == "__main__":
 	user='root', 
 	password='1040113') 
 	
+	'''
 	jsonData = '{ "file_name": "main.cpp", "uid": "1", "lang": "1", "source": "void main()"}'
-	jsonToPython = json.loads(jsonData)
-	
-	data = {
-		'file_name': jsonToPython["file_name"],
-		'uid': int(jsonToPython["uid"]),
-		'lang': int(jsonToPython["lang"]),
-		'source': jsonToPython["source"],
-		'json_data': jsonToPython
-	}
-	loadProgram(data)
-	
+	loadProgram(jsonData)
+	'''
+	getProgByID(14)
 	conn.close()
