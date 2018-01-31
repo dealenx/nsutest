@@ -51,13 +51,13 @@ export default class App extends Component {
         // file_.append('file', e.target.files[0]);
         const data = {
             file_name: document.getElementById("fileName").value,
-            uid: 1,
-            task_id: document.getElementById("taskName").value,
-            lang: document.getElementById("compilerName").value,
+            uid: "1",
+            task_id: "1",//document.getElementById("taskName").value,
+            lang: "2",//document.getElementById("compilerName").value,
             source: document.getElementById("programCode").value,
             // file: file_
         };
-        axios.post('/program/', data)
+        axios.post('/load_program', data)
             .then(function (response) {
                 console.log(response);
             })
