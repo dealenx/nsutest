@@ -3,42 +3,7 @@ import json
 import mysql.connector
 import datetime
 
-
-def loadProgram(data):
-        cursor = conn.cursor()
-        req = "insert into s_tasks(lang, time, file_name, uid, state, source) values( " + data['lang'] + ", sysdate(), '" + data['file_name'] + "',"+ data['uid'] +", 'wait', '"+ data['source'] + "');"
-        cursor.execute(req);
-        conn.commit()
-
-def loadTestResult():
-	print('loadTestResult')
-
-def getProgByID(id):
-	cursor = conn.cursor()
-	cursor.execute("SELECT id, lang, file_name, source, time, client_out, uid  FROM s_tasks where id = " + str(id))
-	row = cursor.fetchone()
-	while row is not None:
-		dataArray = {
-			'id': row[0],
-			'lang': row[1],
-			'file_name': row[2],
-			'source': row[3],
-			'time': row[4],
-			'client_out': row[5],
-			'uid': row[6],
-		}
-		row = cursor.fetchone()
-	cursor.close()
-	data = '{ "id": "' + str(dataArray["id"]) +  '", \
-	"lang": "' + str(dataArray["lang"]) +  '", \
-	"file_name": "' + str(dataArray["file_name"]) +  '", \
-	"source": "' + str(dataArray["source"]) +  '", \
-	"time": "' + str(dataArray["time"]) +  '", \
-	"client_out": "' + str(dataArray["client_out"]) +  '", \
-	"task_id": "1", \
-	"uid": "' + str(dataArray["uid"]) +  '" } '
-	return(data)
-
+from bd import *
 
 app = Flask(__name__, static_folder="../dist", template_folder="../static")
 
@@ -58,7 +23,7 @@ def load_task_from_user():
             or not 'source' in request.json:
         abort(400)
 
-    loadProgram(request.json)
+    loadProgram(request.json, conn)
     return jsonify({"Result" : "Success"}), 201
 
 
@@ -92,7 +57,7 @@ def load_results():
         'result': request.json['result'],
     }
 
-    load_results_to_database(test_results)
+    load_results_to_database(test_results, conn)
 
 
 if __name__ == '__main__':
@@ -101,6 +66,6 @@ if __name__ == '__main__':
     user='root',
     password='1040113')
 
-    app.run(host='0.0.0.0', port=5001)
+    app.run(host='0.0.0.0', port=7777)
 
     conn.close()
