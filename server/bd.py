@@ -3,7 +3,7 @@ import datetime
 import json
 
 
-def loadProgram(data):
+def loadProgram(data, conn):
 	print('loadProgram')
 
 	cursor = conn.cursor()
@@ -18,21 +18,24 @@ def loadProgram(data):
 		'json_data': jsonToPython
 	}
 
+
 	cursor.execute("insert into s_tasks(lang, time, file_name, uid, state, source) values(" + dataArray["lang"] + ", sysdate(), '" + dataArray["file_name"] + "', " + dataArray["uid"] + ", 'wait', '" + dataArray["source"] + "');")
 	conn.commit()
 	print(data)
 	
+def hello():
+	print('hello world')
 	
 def loadTestResult():
 	print('loadTestResult') 
 	
-def getProgByID(id):
+def getProgByID(id, conn):
 	print('getProgByID') 
-	cursor = conn.cursor() 
+	cursor = conn.cursor()
 	cursor.execute("SELECT id, lang, file_name, source, time, client_out, uid  FROM s_tasks where id = " + str(id)) 
 	row = cursor.fetchone()
 	while row is not None:
-		dataArray = {
+		dataArray1 = {
 			'id': row[0],
 			'lang': row[1],
 			'file_name': row[2],
@@ -41,6 +44,7 @@ def getProgByID(id):
 			'client_out': row[5],
 			'uid': row[6],
 		}
+
 		row = cursor.fetchone()
 	cursor.close()
 	data = '{ "id": "' + str(dataArray["id"]) +  '", \
@@ -52,16 +56,16 @@ def getProgByID(id):
 	"task_id": "1", \
 	"uid": "' + str(dataArray["uid"]) +  '" } ' 
 	return(data)
-	
+'''
 if __name__ == "__main__":
 	conn = mysql.connector.connect(host='localhost', 
 	database='pythonweb', 
 	user='root', 
 	password='1040113') 
 	
-	'''
+	
 	jsonData = '{ "file_name": "main.cpp", "uid": "1", "lang": "1", "source": "void main()"}'
 	loadProgram(jsonData)
-	'''
-	print(getProgByID(14))
-	conn.close()
+	
+	#print(getProgByID(14))
+	conn.close()'''
