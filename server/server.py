@@ -1,9 +1,10 @@
 from flask import Flask, request, abort, jsonify, render_template
 import json
 import mysql.connector
+from mysql.connector import MySQLConnection, Error
 import datetime
 
-from bd import *
+from db_api import *
 
 app = Flask(__name__, static_folder="../dist", template_folder="../static")
 
@@ -70,11 +71,8 @@ def load_results():
 
 
 if __name__ == '__main__':
-	conn = mysql.connector.connect(host='localhost',
-	database='pythonweb',
-	user='root',
-	password='1040113')
-	print(bdGetLang(conn))
-	app.run(host='0.0.0.0', port=7777)
-	
-	conn.close()
+	with DatabaseConnection() as dbconn:
+		#dbconn.insert_raw_commit('{"user_id": "2", "task_id": "1", "compiler_id": "2", "filename": "test1.c", "source": "#include <stdio.h>dsadsa"}')
+		#dbconn.register_user('ayya', 12345)
+		dbconn.get_uid_by_username('ayya')
+		#app.run(host='0.0.0.0', port=7777)
