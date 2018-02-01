@@ -38,23 +38,21 @@ class DatabaseConnection(object):
 
 
     def query_commit_by_id(self, commit_id):
-        self._db_cursor.execute("SELECT * FROM Submits WHERE id = " + str(commit_id))
+        self._db_cursor.execute("SELECT * FROM commits WHERE commit_id = " + str(commit_id))
         row = self._db_cursor.fetchone()
         return self.jsonify(row)
 
 
-    def query_commits(self, params = None):
-        if params is None:
-            self._db_cursor.execute("SELECT * FROM Submits")
-        else:
-            self._db_cursor.execute("SELECT * FROM Submits WHERE " + params)
+    def query_commits(self, params):
+        #print("SELECT * FROM commits WHERE " + params)
+        self._db_cursor.execute("SELECT * FROM commits WHERE " + params)
 
         # gets commits IDs
         commit_ids = [item[0] for item in self._db_cursor.fetchall()]
         # convert IDs to dictionaries
         dict_list = [json.loads(self.query_commit_by_id(i)) for i in commit_ids]
 
-        print(json.dumps(dict_list))
+        return(json.dumps(dict_list))
 
 
 
@@ -70,15 +68,25 @@ class DatabaseConnection(object):
     '''
     def insert_raw_commit(self, j_data):
         data = json.loads(j_data)
-
-        self._db_cursor.execute("INSERT INTO commits ("\
-                + ", ".join(data.keys())\
-                + ") VALUES (\"" + "\", \"".join(data.values())\
-                + "\");")
+        self._db_cursor.execute('INSERT INTO commits (user_id, task_id, compiler_id, filename, source) VALUE ({0}, {1}, {2}, "{3}", "{4}")'\
+                .format(data["user_id"], data["task_id"], data["compiler_id"], data["filename"], data["source"]))
         self._db_connection.commit()
 
-        self._db_cursor.execute("INSERT INTO commits")
 
+#######################################################
+# functions for client's API
+
+    def get_not_tested_submit(self):
+        lontc = json.loads(self.query_commits(params = 'status = "RAW"'))
+        if not lontc:
+            return lontc
+        else:
+            return json.dumps(lontc[0])
+
+
+
+#######################################################:3
+# functions for user control
 
     def register_user(self, username, hashed_password):
         self._db_cursor.execute('INSERT INTO users (username, hash) VALUES (\"{0}\", \"{1}\");'.format(username, hashed_password))
@@ -94,14 +102,15 @@ class DatabaseConnection(object):
     def get_uid_by_username(self, username):
         self._db_cursor.execute("SELECT user_id FROM users WHERE username = \"{0}\"".format(username))
         uid = self._db_cursor.fetchone()[0]
-        print( uid) 
+        return uid
 
 
-#if __name__ == '__main__':
-#    with DatabaseConnection() as dbconn:
-#        #dbconn.insert_raw_commit('{"user_id": "2", "task_id": "1", "compiler_id": "2", "filename": "test1.c", "source": "#include <stdio.h>dsadsa"}')
-#        #dbconn.register_user('ayya', 12345)
-#        dbconn.get_uid_by_username('ayya')
+if __name__ == '__main__':
+    with DatabaseConnection() as dbconn:
+        print(dbconn.query_commits(params = 'source = "Hello, Wo!"'))
+        print(dbconn.insert_raw_commit('{"user_id": 2, "task_id": 1, "compiler_id": 2, "filename": "test1.c", "source": "#include <stdio.h>dsadsa"}'))
+        print(dbconn.get_uid_by_username('ayya'))
+        print(dbconn.get_not_tested_submit())
 
 
 
