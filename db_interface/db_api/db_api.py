@@ -94,7 +94,7 @@ class DatabaseConnection(object):
     def get_uid_by_username(self, username):
         self._db_cursor.execute("SELECT user_id FROM users WHERE username = \"{0}\"".format(username))
         uid = self._db_cursor.fetchone()[0]
-        return uid
+        print( uid) 
 
 
 if __name__ == '__main__':
