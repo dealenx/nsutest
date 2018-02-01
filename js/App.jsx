@@ -4,28 +4,47 @@ import axios from 'axios'
 import Button from 'react-bootstrap/lib/Button'
 import Well from 'react-bootstrap/lib/Well'
 import Grid  from 'react-bootstrap/lib/Grid'
+import Modal  from 'react-bootstrap/lib/Modal'
 import Navbar  from 'react-bootstrap/lib/Navbar'
 import FormGroup from 'react-bootstrap/lib/FormGroup'
 import ControlLabel from 'react-bootstrap/lib/ControlLabel'
 import FormControl from 'react-bootstrap/lib/FormControl'
+import Form from 'react-bootstrap/lib/Form'
+import Col from 'react-bootstrap/lib/Col'
 import HelpBlock from 'react-bootstrap/lib/HelpBlock'
+import ButtonGroup from "react-bootstrap/lib/ButtonGroup";
+import NavItem from "react-bootstrap/lib/NavItem";
+import Nav from "react-bootstrap/lib/Nav";
+import { AlertList } from "react-bs-notifier"
 
 
 export default class App extends Component {
     constructor() {
         super();
         this.state = {
+            loggedIn: !!sessionStorage.getItem('uid'),
+            uid: sessionStorage.getItem('uid'),
             tasks: null,
             compilers: null,
+            loading: false,
+            alerts: []
         };
-        this.reloadTasks = this.reloadTasks.bind(this);
-        this.reloadCompilers = this.reloadCompilers.bind(this);
+        this.signIn = this.signIn.bind(this);
+        this.signUp = this.signUp.bind(this);
+        this.signOut = this.signOut.bind(this);
+        this.sendProgram = this.sendProgram.bind(this);
+        this.generateAlert = this.generateAlert.bind(this);
+    }
+
+    componentWillMount() {
+        if (this.state.loggedIn) {
+            // this.reloadTasks();
+            // this.reloadCompilers();
+        }
     }
 
     reloadTasks() {
-        let self = this;
-        let taskName = document.getElementById("taskName").value;
-        axios.get('/tasks/?taskName=' + taskName)
+        axios.get('/tasks')
             .then(function(response) {
                 self.setState({
                     firstFields: response.data
@@ -35,9 +54,7 @@ export default class App extends Component {
     }
 
     reloadCompilers() {
-        let self = this;
-        let compilerName = document.getElementById("compilerName").value;
-        axios.get('/compilers/?compilerName=' + compilerName)
+        axios.get('/compilers')
             .then(function(response) {
                 self.setState({
                     firstFields: response.data
@@ -46,24 +63,80 @@ export default class App extends Component {
             });
     }
 
-    sendProgram(e) {
-        // let file_ = new FormData();
-        // file_.append('file', e.target.files[0]);
-        const data = {
-            file_name: document.getElementById("fileName").value,
-            uid: "1",
-            task_id: "1",//document.getElementById("taskName").value,
-            lang: "2",//document.getElementById("compilerName").value,
-            source: document.getElementById("programCode").value,
-            // file: file_
+    signIn() {
+        let self = this;
+        const credentials = {
+            login: document.getElementById("login-form").value,
+            password: document.getElementById("password-form").value
         };
-        axios.post('/load_program', data)
+        axios.post('/login', credentials)
+            .then(function(response) {
+                console.log(response.data);
+                self.setState({ loggedIn : true, uid : response.data.uid });
+                sessionStorage.setItem('uid', response.data.uid);
+            });
+    }
+
+    signUp() {
+        let self = this;
+        const credentials = {
+            login: document.getElementById("login-form").value,
+            password: document.getElementById("password-form").value
+        };
+        axios.post('/register', credentials)
             .then(function (response) {
                 console.log(response);
             })
             .catch(function (error) {
                 console.log(error);
             });
+    }
+
+    signOut() {
+        this.setState({ loggedIn : false, uid : null });
+        sessionStorage.clear();
+    }
+
+    sendProgram(e) {
+        this.setState({ loading : true });
+        // let file_ = new FormData();
+        // file_.append('file', e.target.files[0]);
+        const data = {
+            file_name: document.getElementById("fileName").value,
+            uid: this.state.uid,
+            task_id: "1",//document.getElementById("taskName").value,
+            lang: "1",//document.getElementById("compilerName").value,
+            source: document.getElementById("programCode").value,
+            // file: file_
+        };
+        let self = this;
+        axios.post('/compile', data)
+            .then(function (response) {
+                console.log(response);
+                self.setState({ loading : false });
+                self.generateAlert("success", "Tests passed");
+            })
+            .catch(function (error) {
+                console.log(error);
+                self.setState({ loading : false });
+                self.generateAlert("danger", "Tests failed. Please, try again");
+            });
+    }
+
+    generateAlert(type, massage) {
+        const newAlert = {
+            id: (new Date()).getTime(),
+            type: type,
+            message: massage
+        };
+        this.setState({ alerts: [...this.state.alerts, newAlert] });
+    }
+
+    onAlertDismissed(alert) {
+        const alerts = this.state.alerts;
+        const idx = alerts.indexOf(alert);
+        if (idx >= 0)
+            this.setState({ alerts: [...alerts.slice(0, idx), ...alerts.slice(idx + 1)] });
     }
 
     render () {
@@ -74,7 +147,63 @@ export default class App extends Component {
                         <a href="#">NSU-test-app</a>
                     </Navbar.Brand>
                 </Navbar.Header>
+                <Navbar.Collapse>
+                    <Nav pullRight>
+                        <NavItem onClick={this.signOut}>
+                            {this.state.loggedIn ? "Log out" : ""}
+                        </NavItem>
+                    </Nav>
+                </Navbar.Collapse>
             </Navbar>
+            <AlertList
+                position="bottom-right"
+                alerts={this.state.alerts}
+                timeout={2500}
+                onDismiss={this.onAlertDismissed.bind(this)}
+            />
+            <Modal show={!this.state.loggedIn}>
+                <Modal.Header>
+                    <Modal.Title> Please, <strong>sign in</strong> to continue </Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form horizontal>
+                        <FormGroup controlId="login-form">
+                            <Col  sm={2}>
+                                Login
+                            </Col>
+                            <Col sm={10}>
+                                <FormControl
+                                    controlid="login"
+                                    type="text"
+                                    placeholder="Login"
+                                />
+                                <FormControl.Feedback />
+                            </Col>
+                        </FormGroup>
+
+                        <FormGroup controlId="password-form">
+                            <Col  sm={2}>
+                                Password
+                            </Col>
+                            <Col sm={10}>
+                                <FormControl
+                                    controlid="password"
+                                    type="password"
+                                    placeholder="Password"
+                                />
+                                <FormControl.Feedback />
+                            </Col>
+                        </FormGroup>
+
+                    </Form>
+                </Modal.Body>
+                <Modal.Footer>
+                    <ButtonGroup>
+                        <Button onClick={this.signIn}>Sign in</Button>
+                        <Button onClick={this.signUp}>Registration</Button>
+                    </ButtonGroup>
+                </Modal.Footer>
+            </Modal>
             <Grid>
                 <div>
                     <Well bsSize="large">
@@ -99,7 +228,7 @@ export default class App extends Component {
                         </FormGroup>
                         <FormGroup controlId="file">
                             <ControlLabel>Upload file</ControlLabel>
-                            <input type="file" id="file" name="file" />
+                            <input value="" type="file" id="file" name="file" />
                             <HelpBlock>Attach file without copying</HelpBlock>
                         </FormGroup>
                         <FormGroup controlId="compilerName">
@@ -108,10 +237,13 @@ export default class App extends Component {
                                 {this.state.compilers}
                             </FormControl>
                         </FormGroup>
-                        <Button onClick={() => this.sendProgram()}> Send to server </Button>
+                        <Button type="submit" disabled={this.state.loading} onClick={this.sendProgram}>
+                            {this.state.loading ? 'Loading...' : 'Send to server'}
+                        </Button>
                     </Well>
                 </div>
             </Grid>
+
         </div>;
     }
 }
