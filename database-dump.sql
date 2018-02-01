@@ -1,8 +1,8 @@
 -- MySQL dump 10.13  Distrib 5.7.21, for Linux (x86_64)
 --
--- Host: localhost    Database: pythonweb
+-- Host: localhost    Database: NSUtest
 -- ------------------------------------------------------
--- Server version	5.7.21-0ubuntu0.16.04.1
+-- Server version	5.7.21-0ubuntu0.17.10.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -16,80 +16,120 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `s_lang`
+-- Table structure for table `commits`
 --
 
-DROP TABLE IF EXISTS `s_lang`;
+DROP TABLE IF EXISTS `commits`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `s_lang` (
-  `id` int(6) DEFAULT NULL,
-  `name` varchar(256) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE TABLE `commits` (
+  `commit_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `task_id` bigint(20) unsigned NOT NULL,
+  `compiler_id` bigint(20) unsigned NOT NULL,
+  `filename` varchar(50) NOT NULL,
+  `source` text NOT NULL,
+  `commit_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `status` enum('SUBMITTED','TESTING','TESTED') NOT NULL DEFAULT 'SUBMITTED',
+  `result_code` enum('OK','RUNTIME_ERROR','TIME_LIMIT','MEMORY_LIMIT','SYSTEM_TIME_LIMIT','SECURITY_VIOLATION','WRONG_ANSWER','INVALID_INPUT','COMPILATION_ERROR') DEFAULT NULL,
+  `output` longtext,
+  PRIMARY KEY (`commit_id`),
+  UNIQUE KEY `commit_id` (`commit_id`),
+  KEY `user_id` (`user_id`),
+  KEY `task_id` (`task_id`),
+  KEY `compiler_id` (`compiler_id`),
+  CONSTRAINT `commits_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `commits_ibfk_2` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`task_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `commits_ibfk_3` FOREIGN KEY (`compiler_id`) REFERENCES `compilers` (`compiler_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `s_lang`
+-- Dumping data for table `commits`
 --
 
-LOCK TABLES `s_lang` WRITE;
-/*!40000 ALTER TABLE `s_lang` DISABLE KEYS */;
-INSERT INTO `s_lang` VALUES (1,'C++');
-/*!40000 ALTER TABLE `s_lang` ENABLE KEYS */;
+LOCK TABLES `commits` WRITE;
+/*!40000 ALTER TABLE `commits` DISABLE KEYS */;
+INSERT INTO `commits` VALUES (23,1,1,1,'test1.c','#include <stdio.h>dsadsa','2018-02-01 12:58:02','TESTED','COMPILATION_ERROR','Molodec!!!'),(24,2,2,3,'testadasdas1.c','#include <stdio.h>dsadsa','2018-02-01 13:00:49','TESTING',NULL,NULL);
+/*!40000 ALTER TABLE `commits` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `s_tasks`
+-- Table structure for table `compilers`
 --
 
-DROP TABLE IF EXISTS `s_tasks`;
+DROP TABLE IF EXISTS `compilers`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `s_tasks` (
-  `id` int(6) NOT NULL AUTO_INCREMENT,
-  `lang` int(6) DEFAULT NULL,
-  `time` datetime NOT NULL,
-  `state` varchar(50) DEFAULT NULL,
-  `client_out` varchar(256) DEFAULT NULL,
-  `source` varchar(10000) DEFAULT NULL,
-  `file_name` varchar(128) DEFAULT NULL,
-  `json_data` varchar(9000) DEFAULT NULL,
-  `uid` int(6) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=latin1;
+CREATE TABLE `compilers` (
+  `compiler_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  PRIMARY KEY (`compiler_id`),
+  UNIQUE KEY `compiler_id` (`compiler_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `s_tasks`
+-- Dumping data for table `compilers`
 --
 
-LOCK TABLES `s_tasks` WRITE;
-/*!40000 ALTER TABLE `s_tasks` DISABLE KEYS */;
-INSERT INTO `s_tasks` VALUES (1,1,'2018-01-30 05:29:58',NULL,NULL,NULL,NULL,NULL,NULL),(2,2,'2018-01-30 05:30:31',NULL,NULL,NULL,NULL,NULL,NULL),(4,1,'2018-01-30 06:05:07',NULL,NULL,NULL,NULL,NULL,NULL),(5,1,'2018-01-30 06:05:50',NULL,NULL,NULL,NULL,NULL,NULL),(6,1,'2018-01-30 06:05:50',NULL,NULL,NULL,NULL,NULL,NULL),(10,3,'2018-01-30 06:07:23',NULL,NULL,NULL,NULL,NULL,NULL),(11,3,'2018-01-30 06:21:07',NULL,NULL,NULL,NULL,NULL,NULL),(12,5,'2018-01-30 06:21:30',NULL,NULL,NULL,NULL,NULL,NULL),(13,2,'2018-01-30 06:43:02','wait',NULL,'void main()','void main()',NULL,1),(14,1,'2018-01-30 06:51:31','wait',NULL,'void main()','main.cpp',NULL,1),(15,1,'2018-01-30 06:58:56','wait',NULL,'void main()','main.cpp',NULL,1),(16,1,'2018-01-30 06:59:03','wait',NULL,'void main()','main.cpp',NULL,1),(17,1,'2018-01-30 07:26:01','wait',NULL,'void main()','main.cpp',NULL,1);
-/*!40000 ALTER TABLE `s_tasks` ENABLE KEYS */;
+LOCK TABLES `compilers` WRITE;
+/*!40000 ALTER TABLE `compilers` DISABLE KEYS */;
+INSERT INTO `compilers` VALUES (1,'GCC 7.2.0'),(2,'Visual Studio C++ 2015'),(3,'Clang 5.0.0');
+/*!40000 ALTER TABLE `compilers` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `s_users`
+-- Table structure for table `tasks`
 --
 
-DROP TABLE IF EXISTS `s_users`;
+DROP TABLE IF EXISTS `tasks`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `s_users` (
-  `id` int(6) DEFAULT NULL,
-  `login` varchar(256) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE TABLE `tasks` (
+  `task_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  `description` text,
+  PRIMARY KEY (`task_id`),
+  UNIQUE KEY `task_id` (`task_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `s_users`
+-- Dumping data for table `tasks`
 --
 
-LOCK TABLES `s_users` WRITE;
-/*!40000 ALTER TABLE `s_users` DISABLE KEYS */;
-INSERT INTO `s_users` VALUES (1,'admin');
-/*!40000 ALTER TABLE `s_users` ENABLE KEYS */;
+LOCK TABLES `tasks` WRITE;
+/*!40000 ALTER TABLE `tasks` DISABLE KEYS */;
+INSERT INTO `tasks` VALUES (1,'Bubble Sort','some kind of sort'),(2,'Binary Search','some kind of search');
+/*!40000 ALTER TABLE `tasks` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `users`
+--
+
+DROP TABLE IF EXISTS `users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `users` (
+  `user_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `hash` text NOT NULL,
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `user_id` (`user_id`),
+  UNIQUE KEY `username` (`username`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `users`
+--
+
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+INSERT INTO `users` VALUES (1,'Jack','qwerty12345'),(2,'Bob','azaza'),(3,'ayya','12345');
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -101,4 +141,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-01-30  8:52:49
+-- Dump completed on 2018-02-01 20:32:59
