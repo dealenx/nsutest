@@ -24,8 +24,10 @@ export default class App extends Component {
         this.state = {
             username: sessionStorage.getItem('username'),
             loggedIn: !!sessionStorage.getItem('token'),
-            tasks: null,
-            compilers: null,
+            tasks: [],
+            compilers: [],
+            compiler_id: null,
+            task_id: null,
             loading: false,
             alerts: []
         };
@@ -34,32 +36,54 @@ export default class App extends Component {
         this.signOut = this.signOut.bind(this);
         this.sendProgram = this.sendProgram.bind(this);
         this.generateAlert = this.generateAlert.bind(this);
+        this.reloadCompilers = this.reloadCompilers.bind(this)
+        this.onSelectCompiler = this.onSelectCompiler.bind(this)
+        this.onSelectTask = this.onSelectTask.bind(this)
+    }
+
+    onSelectCompiler(e) {
+      const selectedInd = e.target.options.selectedIndex;
+      this.setState({
+        compiler_id: e.target.options[selectedInd].getAttribute('datakey')
+      });
+    }
+
+    onSelectTask(e) {
+      const selectedInd = e.target.options.selectedIndex;
+      this.setState({
+        task_id: e.target.options[selectedInd].getAttribute('datakey')
+      });
     }
 
     componentWillMount() {
-        if (!sessionStorage.getItem('token')) {
-            this.setState({ loggedIn : false })
-            // this.reloadTasks();
-            // this.reloadCompilers();
+        if (!sessionStorage.getItem('token'))
+            this.signOut()
+        else {
+            this.reloadTasks();
+            this.reloadCompilers();
         }
     }
 
     reloadTasks() {
+        let self = this;
         axios.get('/tasks')
             .then(function(response) {
+
                 self.setState({
-                    firstFields: response.data
-                        .map((name) => <option key={name} value={name}>{name}</option>)
+                    tasks: response.data
+                        .map((k) => <option key={k.name} datakey={k.id} value={k.name}>{k.name}</option>)
                 })
             });
     }
 
     reloadCompilers() {
+        let self = this;
         axios.get('/compilers')
             .then(function(response) {
+                console.log(response.data)
                 self.setState({
-                    firstFields: response.data
-                        .map((name) => <option key={name} value={name}>{name}</option>)
+                    compilers: response.data
+                      .map((k) => <option key={k.id} datakey={k.id} value={k.name}>{k.name}</option>)
                 })
             });
     }
@@ -112,16 +136,20 @@ export default class App extends Component {
         sessionStorage.clear();
     }
 
+
+
     sendProgram(e) {
         this.verifyUser();
         this.setState({ loading : true });
         // let file_ = new FormData();
         // file_.append('file', e.target.files[0]);
+        var thisKey;
+
         const data = {
             filename: document.getElementById("fileName").value,
             username: this.state.username,
-            task_id: "1",//document.getElementById("taskName").value,
-            compiler_id: "1",//document.getElementById("compilerName").value,
+            task_id: '2',//document.getElementById("taskName").value,
+            compiler_id: this.state.compiler_id,
             source: document.getElementById("programCode").value,
             // file: file_
         };
@@ -210,7 +238,7 @@ export default class App extends Component {
                                 <FormControl.Feedback />
                             </Col>
                         </FormGroup>
-                        
+
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
@@ -225,7 +253,7 @@ export default class App extends Component {
                     <Well bsSize="large">
                         <FormGroup controlId="taskName">
                             <ControlLabel>Choose task</ControlLabel>
-                            <FormControl componentClass="select">
+                            <FormControl componentClass="select" onChange={this.onSelectTask}>
                                 {this.state.tasks}
                             </FormControl>
                         </FormGroup>
@@ -249,7 +277,7 @@ export default class App extends Component {
                         </FormGroup>
                         <FormGroup controlId="compilerName">
                             <ControlLabel>Choose compiler</ControlLabel>
-                            <FormControl componentClass="select">
+                            <FormControl componentClass="select" onChange={this.onSelectCompiler}>
                                 {this.state.compilers}
                             </FormControl>
                         </FormGroup>
