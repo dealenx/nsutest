@@ -1,4 +1,7 @@
 from flask import Flask, request, abort, jsonify, render_template
+
+from flask_restful import Resource, Api
+
 import jwt
 import json
 import hashlib
@@ -7,9 +10,27 @@ import datetime
 from db_api import *
 
 app = Flask(__name__, static_folder="../dist", template_folder="../static")
+api = Api(app)
 
 SECRET_KEY = 'my_secret_secret_key'
 HASH_KEY = 'my_secret_hash_key'
+
+
+class SendNotTestedCommit(Resource):
+    def get(self):
+        with DatabaseConnection() as dbconn:
+            return dbconn.get_not_tested_submit()
+
+class PushResult(Resource):
+    def post(self):
+        with DatabaseConnection() as dbconn:
+            print(request.headers)
+            print(request.data)
+            dbconn.set_test_result(request.data.decode('utf8'))
+        return ''
+
+api.add_resource(SendNotTestedCommit, '/get_not_tested_submit')
+api.add_resource(PushResult, '/push_result')
 
 def encode(string):
     return hashlib.sha1(str.encode(string)).hexdigest()
@@ -29,7 +50,7 @@ def post_program():
     source = request.json['source']
     if filename is None or compiler_id is None or user_id is None or task_id is None or source is None:
         app.logger.error('Not enough info about compiling program')
-        abort(400, message='Enter missing info')
+        abort(400)
     data = {
         'filename' : filename,
         'compiler_id' : compiler_id,
@@ -37,7 +58,6 @@ def post_program():
         'task_id' : task_id,
         'source' : source
     }
-    print(data)
     print(json.dumps(data))
     with DatabaseConnection() as dbconn:
         dbconn.insert_raw_commit(json.dumps(data))
@@ -87,6 +107,4 @@ def get_tasks():
         return dbconn.get_task_list()
 
 if __name__ == '__main__':
-        app.run(host='0.0.0.0', port=5004
-        , debug=True
-        )
+        app.run(host='0.0.0.0', port=5004, debug=True)
