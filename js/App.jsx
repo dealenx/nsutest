@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import axios from 'axios'
+import { AlertList } from "react-bs-notifier"
 
 import Button from 'react-bootstrap/lib/Button'
 import Well from 'react-bootstrap/lib/Well'
@@ -12,18 +13,17 @@ import FormControl from 'react-bootstrap/lib/FormControl'
 import Form from 'react-bootstrap/lib/Form'
 import Col from 'react-bootstrap/lib/Col'
 import HelpBlock from 'react-bootstrap/lib/HelpBlock'
-import ButtonGroup from "react-bootstrap/lib/ButtonGroup";
-import NavItem from "react-bootstrap/lib/NavItem";
-import Nav from "react-bootstrap/lib/Nav";
-import { AlertList } from "react-bs-notifier"
+import ButtonGroup from "react-bootstrap/lib/ButtonGroup"
+import NavItem from "react-bootstrap/lib/NavItem"
+import Nav from "react-bootstrap/lib/Nav"
 
 
 export default class App extends Component {
     constructor() {
         super();
         this.state = {
-            loggedIn: !!sessionStorage.getItem('uid'),
-            uid: sessionStorage.getItem('uid'),
+            username: sessionStorage.getItem('username'),
+            loggedIn: !!sessionStorage.getItem('token'),
             tasks: null,
             compilers: null,
             loading: false,
@@ -37,7 +37,8 @@ export default class App extends Component {
     }
 
     componentWillMount() {
-        if (this.state.loggedIn) {
+        if (!sessionStorage.getItem('token')) {
+            this.setState({ loggedIn : false })
             // this.reloadTasks();
             // this.reloadCompilers();
         }
@@ -69,21 +70,35 @@ export default class App extends Component {
             login: document.getElementById("login-form").value,
             password: document.getElementById("password-form").value
         };
-        axios.post('/login', credentials)
+        axios.post('/auth/login', credentials)
             .then(function(response) {
-                console.log(response.data);
-                self.setState({ loggedIn : true, uid : response.data.uid });
-                sessionStorage.setItem('uid', response.data.uid);
+                self.setState({ loggedIn : true, username: credentials.login });
+                sessionStorage.setItem('username', credentials.login);
+                sessionStorage.setItem('token', response.data.token);
+            });
+    }
+
+    verifyUser() {
+        axios({
+            method: 'POST',
+            url: '/auth/verify',
+            headers: { authorization: sessionStorage.getItem('token') },
+            data: { 'username' : this.state.username }
+        })
+            .then(function(response) {
+                if (response.status === 200)
+                    console.log(response.data);
+                if (response.status === 400)
+                    this.signOut();
             });
     }
 
     signUp() {
-        let self = this;
         const credentials = {
             login: document.getElementById("login-form").value,
             password: document.getElementById("password-form").value
         };
-        axios.post('/register', credentials)
+        axios.post('/auth/register', credentials)
             .then(function (response) {
                 console.log(response);
             })
@@ -93,19 +108,20 @@ export default class App extends Component {
     }
 
     signOut() {
-        this.setState({ loggedIn : false, uid : null });
+        this.setState({ loggedIn : false, username : null });
         sessionStorage.clear();
     }
 
     sendProgram(e) {
+        this.verifyUser();
         this.setState({ loading : true });
         // let file_ = new FormData();
         // file_.append('file', e.target.files[0]);
         const data = {
-            file_name: document.getElementById("fileName").value,
-            uid: this.state.uid,
+            filename: document.getElementById("fileName").value,
+            username: this.state.username,
             task_id: "1",//document.getElementById("taskName").value,
-            lang: "1",//document.getElementById("compilerName").value,
+            compiler_id: "1",//document.getElementById("compilerName").value,
             source: document.getElementById("programCode").value,
             // file: file_
         };
@@ -194,7 +210,7 @@ export default class App extends Component {
                                 <FormControl.Feedback />
                             </Col>
                         </FormGroup>
-
+                        
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
