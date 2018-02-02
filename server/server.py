@@ -83,7 +83,8 @@ def get_compilers():
 
 @app.route('/tasks', methods=['GET'])
 def get_tasks():
-    return ''
+    with DatabaseConnection() as dbconn:
+        return dbconn.get_task_list()
 
 if __name__ == '__main__':
         app.run(host='0.0.0.0', port=5004
