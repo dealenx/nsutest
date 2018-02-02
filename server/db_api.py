@@ -65,6 +65,11 @@ class DatabaseConnection(object):
         "filename": String,
         "source": String
     }
+     |
+     |
+     |
+    \ /
+     V
     '''
     def insert_raw_commit(self, j_data):
         data = json.loads(j_data)
@@ -73,15 +78,37 @@ class DatabaseConnection(object):
         self._db_connection.commit()
 
 
+    #def modify_commit(self, commit_id, params):
+
+
+
 #######################################################
-# functions for client's API
+# functions for compiler's API
 
     def get_not_tested_submit(self):
-        lontc = json.loads(self.query_commits(params = 'status = "RAW"'))
+        lontc = json.loads(self.query_commits(params = 'status = "SUBMITTED"'))
         if not lontc:
             return lontc
         else:
+            self._db_cursor.execute('UPDATE commits SET status = "TESTING" WHERE commit_id = {0}'.format(lontc[0]["commit_id"]))
+            self._db_connection.commit()
             return json.dumps(lontc[0])
+
+
+
+    '''
+    asserts JSON in next format:
+    {
+        "commit_id": Number,
+        "result_code": String,
+        "output": String
+    }
+    '''
+    def set_test_result(self, j_result):
+        result = json.loads(j_result)
+        self._db_cursor.execute('UPDATE commits SET status = "TESTED", result_code = "{1}", output = "{2}" WHERE commit_id = {0}'.format(result["commit_id"], result["result_code"], result["output"]))
+        self._db_connection.commit()
+
 
 
 
@@ -105,12 +132,20 @@ class DatabaseConnection(object):
         return uid
 
 
+########################################################
+# functions for getting compiler/user/task lists
+
+    def get_compiler_list(self):
+        self._db_cursor.execute("SELECT * FROM compilers")
+        compiler_list = self._db_cursor.fetchall()
+        #compiler_list_dict = ({compiler_list[i][0] : compiler_list[i][1]} for i in compiler_list)
+        compiler_list_dict = dict(compiler_list)
+        return compiler_list_dict
+
+
+
 if __name__ == '__main__':
     with DatabaseConnection() as dbconn:
-        print(dbconn.query_commits(params = 'source = "Hello, Wo!"'))
-        print(dbconn.insert_raw_commit('{"user_id": 2, "task_id": 1, "compiler_id": 2, "filename": "test1.c", "source": "#include <stdio.h>dsadsa"}'))
-        print(dbconn.get_uid_by_username('ayya'))
-        print(dbconn.get_not_tested_submit())
-
-
-
+        #dbconn.insert_raw_commit('{"user_id": "2", "task_id": 2, "compiler_id": 3, "filename": "testadasdas1.c", "source": "#include <stdio.h>dsadsa"}')
+        #dbconn.set_test_result('{"commit_id": 23, "result_code": "COMPILATION_ERROR", "output": "Molodec!!!"}')
+        print(dbconn.get_compiler_list())
