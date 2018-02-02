@@ -60,7 +60,7 @@ def get_user():
     if hashed_password == hash_from_db:
         token = jwt.encode({ 'password' : password }, SECRET_KEY, algorithm='HS256')
         return jsonify({ 'token' : token.decode('ascii') })
-      
+
 @app.route('/auth/verify', methods=['POST'])
 def verify_user():
     print(request)
@@ -77,11 +77,16 @@ def verify_user():
 
 @app.route('/compilers', methods=['GET'])
 def get_compilers():
-    return ''
+    with DatabaseConnection() as dbconn:
+        return dbconn.get_compiler_list()
 
 @app.route('/tasks', methods=['GET'])
 def get_tasks():
     return ''
 
 if __name__ == '__main__':
-        app.run(host='0.0.0.0', port=5002, debug=True)
+        with DatabaseConnection() as dbconn:
+            print(dbconn.get_compiler_list())
+        app.run(host='0.0.0.0', port=5004
+        #, debug=True
+        )

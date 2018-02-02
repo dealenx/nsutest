@@ -133,19 +133,34 @@ class DatabaseConnection(object):
 
 
 ########################################################
-# functions for getting compiler/user/task lists
+# functions for getting compiler/task lists
 
     def get_compiler_list(self):
         self._db_cursor.execute("SELECT * FROM compilers")
-        compiler_list = self._db_cursor.fetchall()
-        #compiler_list_dict = ({compiler_list[i][0] : compiler_list[i][1]} for i in compiler_list)
-        compiler_list_dict = dict(compiler_list)
-        return compiler_list_dict
 
+        keys = ["id", "name"]
+        result_list = self._db_cursor.fetchall()
+
+        dict_result = [dict(zip(keys, i)) for i in result_list]
+        j_result = json.dumps(dict_result)
+
+        return j_result
+
+
+    def get_task_list(self):
+        self._db_cursor.execute("SELECT * FROM tasks")
+
+        keys = ["id", "name", "description"]
+        result_list = self._db_cursor.fetchall()
+
+        dict_result = [dict(zip(keys, i)) for i in result_list]
+        j_result = json.dumps(dict_result)
+
+        return j_result
 
 
 if __name__ == '__main__':
     with DatabaseConnection() as dbconn:
         #dbconn.insert_raw_commit('{"user_id": "2", "task_id": 2, "compiler_id": 3, "filename": "testadasdas1.c", "source": "#include <stdio.h>dsadsa"}')
         #dbconn.set_test_result('{"commit_id": 23, "result_code": "COMPILATION_ERROR", "output": "Molodec!!!"}')
-        print(dbconn.get_compiler_list())
+        print(dbconn.get_task_list())
