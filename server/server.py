@@ -85,8 +85,6 @@ def get_tasks():
     return ''
 
 if __name__ == '__main__':
-        with DatabaseConnection() as dbconn:
-            print(dbconn.get_compiler_list())
         app.run(host='0.0.0.0', port=5004
         #, debug=True
         )
