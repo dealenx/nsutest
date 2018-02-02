@@ -37,6 +37,7 @@ def post_program():
         'task_id' : task_id,
         'source' : source
     }
+    print(data)
     print(json.dumps(data))
     with DatabaseConnection() as dbconn:
         dbconn.insert_raw_commit(json.dumps(data))
@@ -77,8 +78,8 @@ def verify_user():
 
 @app.route('/compilers', methods=['GET'])
 def get_compilers():
-    with DatabaseConnection() as dbconn:
-        return dbconn.get_compiler_list()
+        with DatabaseConnection() as dbconn:
+            return dbconn.get_compiler_list()
 
 @app.route('/tasks', methods=['GET'])
 def get_tasks():
@@ -86,5 +87,5 @@ def get_tasks():
 
 if __name__ == '__main__':
         app.run(host='0.0.0.0', port=5004
-        #, debug=True
+        , debug=True
         )
