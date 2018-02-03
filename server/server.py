@@ -19,14 +19,14 @@ HASH_KEY = 'my_secret_hash_key'
 class SendNotTestedCommit(Resource):
     def get(self):
         with DatabaseConnection() as dbconn:
-            return dbconn.get_not_tested_submit()
+            return dbconn.get_not_tested_commit()
 
 class PushResult(Resource):
     def post(self):
         with DatabaseConnection() as dbconn:
             print(request.headers)
             print(request.data)
-            dbconn.set_test_result(request.data.decode('utf8'))
+            dbconn.update_result(request.data.decode('utf8'))
         return ''
 
 api.add_resource(SendNotTestedCommit, '/get_not_tested_submit')
@@ -61,7 +61,7 @@ def post_program():
     }
     print(json.dumps(data))
     with DatabaseConnection() as dbconn:
-        dbconn.insert_raw_commit(json.dumps(data))
+        dbconn.insert_new_commit(json.dumps(data))
     return jsonify({"result" : "success"}), 200
 
 @app.route('/auth/register', methods=['POST'])
