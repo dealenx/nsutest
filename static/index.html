@@ -3,11 +3,16 @@
   <head>
     <meta charset="utf-8">
     <!-- Latest compiled and minified bootstrap CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'bundle.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename = 'img/favicon/favicon.ico') }}" type="image/x-icon">
+    <!--<link rel="apple-touch-icon" href="./assets/img/favicon/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="./assets/img/favicon/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="./assets/img/favicon/apple-touch-icon-114x114.png"> -->
     <title>NSU test app</title>
   </head>
   <body>
     <div id="content" />
-    <script src="../dist/bundle.js" type="text/javascript"></script>
-  </body>
+    <script type = "text/javascript"
+             src = "{{ url_for('static', filename = 'bundle.js') }}" ></script>  </body>
 </html>

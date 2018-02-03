@@ -17,7 +17,6 @@ import ButtonGroup from "react-bootstrap/lib/ButtonGroup"
 import NavItem from "react-bootstrap/lib/NavItem"
 import Nav from "react-bootstrap/lib/Nav"
 
-
 export default class App extends Component {
     constructor() {
         super();
@@ -49,9 +48,9 @@ export default class App extends Component {
     }
 
     onSelectTask(e) {
-      const selectedInd = e.target.options.selectedIndex;
+      const selectedIndex = e.target.options.selectedIndex;
       this.setState({
-        task_id: e.target.options[selectedInd].getAttribute('datakey')
+        task_id: e.target.options[selectedIndex].getAttribute('datakey')
       });
     }
 
@@ -158,12 +157,12 @@ export default class App extends Component {
             .then(function (response) {
                 console.log(response);
                 self.setState({ loading : false });
-                self.generateAlert("success", "Tests passed");
+                self.generateAlert("success", "Program sent successfully");
             })
             .catch(function (error) {
                 console.log(error);
                 self.setState({ loading : false });
-                self.generateAlert("danger", "Tests failed. Please, try again");
+                self.generateAlert("danger", "Error. Please, try again");
             });
     }
 
