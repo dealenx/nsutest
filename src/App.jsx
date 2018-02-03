@@ -17,7 +17,6 @@ import ButtonGroup from "react-bootstrap/lib/ButtonGroup"
 import NavItem from "react-bootstrap/lib/NavItem"
 import Nav from "react-bootstrap/lib/Nav"
 
-
 export default class App extends Component {
     constructor() {
         super();

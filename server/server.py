@@ -1,4 +1,4 @@
-from flask import Flask, request, abort, jsonify, render_template
+from flask import Flask, request, abort, jsonify, render_template, redirect, url_for, send_from_directory
 
 from flask_restful import Resource, Api
 
@@ -9,7 +9,7 @@ import datetime
 
 from db_api import *
 
-app = Flask(__name__, static_folder="../dist", template_folder="../static")
+app = Flask(__name__, static_folder="../dist", template_folder="../static", static_url_path="/static")
 api = Api(app)
 
 SECRET_KEY = 'my_secret_secret_key'
@@ -38,6 +38,7 @@ def encode(string):
 @app.route('/')
 def index():
  return render_template("index.html")
+
 
 @app.route('/compile', methods=['POST'])
 def post_program():
@@ -107,4 +108,4 @@ def get_tasks():
         return dbconn.get_task_list()
 
 if __name__ == '__main__':
-        app.run(host='0.0.0.0', port=5004, debug=True)
+    app.run(host='0.0.0.0', port=5005, debug=True)
