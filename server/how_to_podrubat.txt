@@ -1,0 +1,1 @@
+sudo uwsgi --plugin=python3 --ini uwsgi_config.ini
