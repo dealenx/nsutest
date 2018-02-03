@@ -18,7 +18,8 @@ import NavItem from 'react-bootstrap/lib/NavItem'
 import Nav from 'react-bootstrap/lib/Nav'
 import Panel from 'react-bootstrap/lib/Panel'
 import ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar'
-import PanelGroup from 'react-bootstrap/lib/PanelGroup' 
+import PanelGroup from 'react-bootstrap/lib/PanelGroup'
+import Label from 'react-bootstrap/lib/Label'
 
 export default class App extends Component {
     constructor() {
@@ -33,11 +34,16 @@ export default class App extends Component {
             loading: false,
             alerts: [],
             status: {
-                filename: '',
-                source: ''
+                filename: null,
+                source: null
             },
-	    file: null,
-	    submitList: []
+            status_signin: {
+                login: null,
+                password: null
+            },
+            file: null,
+            submitList: [],
+            activeKey: null
         };
         this.signIn = this.signIn.bind(this);
         this.signUp = this.signUp.bind(this);
@@ -47,90 +53,106 @@ export default class App extends Component {
         this.reloadCompilers = this.reloadCompilers.bind(this);
         this.onSelectCompiler = this.onSelectCompiler.bind(this);
         this.onSelectTask = this.onSelectTask.bind(this);
-	this.uploadFile = this.uploadFile.bind(this);
         this.deleteSubmit = this.deleteSubmit.bind(this);
+        this.getResultColor = this.getResultColor.bind(this);
+        this.setActiveKey = this.setActiveKey.bind(this);
     }
 
-    uploadFile() {
-        let data = new FormData();
-	data.append('file', e.target.files[0]);
-        this.setState({ file : data });
+    setActiveKey(key) {
+        this.setState({ activeKey : key })
     }
 
-    getSubmitList() {
+    getResultColor(result){
+        let color = 'info';
+        if (result === "OK") color = "success";
+        if (result === "RUNTIME_ERROR"
+            || result === "TIME_LIMIT"
+            || result === "MEMORY_LIMIT"
+            || result === "SYSTEM_TIME_LIMIT"
+            || result === "SECURITY_VIOLATION"
+            || result === "WRONG_ANSWER"
+            || result === "INVALID_INPUT"
+            || result === "COMPILATION_ERROR") color = "danger";
+        return color;
+    }
+
+    getSubmitList(){
         let self = this;
-        axios.post('/get_tested_list', { username: sessionStorage.getItem('username') })
-	    .then(function(response) {
-	       console.log(response);
-	       self.setState({
-                    submitList: response.data !== null ?
+        axios.post('/get_tested_list', { username : sessionStorage.getItem('username') })
+            .then(function(response) {
+                self.setState({
+                    submitList : response.data !== null ?
                         response.data
                             .map((submit) =>
-                                <Panel key={submit.commit_id}> 
-                                    <Panel.Heading toggle><ControlLabel>{submit.filename}</ControlLabel></Panel.Heading>
-				    <Panel.Body>
-                                    <p>Status: {submit.status}</p>
-
-                                    <p>Submit time: {submit.commit_time}</p>
-
-                                    <p>Result code: {submit.result_code}</p>
-
-                                    {"Output"}
-                                    <Well bsSize='sm'>
-                                        {submit.output}
-                                    </Well>
-
-                                    <ButtonToolbar>
-                                        <Button bsStyle="danger" onClick={() => self.deleteSubmit(submit.commit_id)}>
-                                            Delete submit
-                                        </Button>
-                                    </ButtonToolbar>
-				    </Panel.Body>
+                                <Panel id="submit"
+                                       eventKey={submit.commit_id}
+                                       bsStyle={self.getResultColor(submit.result_code)}
+                                       key={submit.commit_id}>
+                                    <Panel.Heading>
+                                        <Panel.Title toggle>
+                                        {submit.filename + '  '}
+                                        </Panel.Title>
+                                    </Panel.Heading>
+                                    <Panel.Body collapsible>
+                                        <p>Status: {submit.status}</p>
+                                        <p>Submit time: {submit.commit_time}</p>
+                                        <p>Result code: {'  '}
+                                            <Label bsStyle={self.getResultColor(submit.result_code)}>
+                                                {submit.result_code}
+                                            </Label>
+                                        </p>
+                                        {"Output: "}
+                                        <Well bsSize='sm'>{submit.output}</Well>
+                                        <ButtonToolbar>
+                                            <Button bsSize="small" bsStyle="danger" onClick={() => self.deleteSubmit(submit.commit_id)}>
+                                                Delete submit
+                                            </Button>
+                                        </ButtonToolbar>
+                                    </Panel.Body>
                                 </Panel>
                             )
-                        : null  
+                        : null
+                });
             })
-	})
     }
 
     deleteSubmit(id) {
         let self = this;
         axios.post('/delete_submit', { 'submit_id' : id })
-	    .then(function(response) {
-		self.getSubmitList();
+            .then(function(response) {
+                self.getSubmitList();
             })
     }
 
     onSelectCompiler(e) {
-      const selectedInd = e.target.options.selectedIndex;
-      this.setState({
-        compiler_id: e.target.options[selectedInd].getAttribute('datakeycompiler')
-      });
+        const selectedCompilerIndex = e.target.options.selectedIndex;
+        this.setState({
+            compiler_id: e.target.options[selectedCompilerIndex].getAttribute('datakeycompiler')
+        });
     }
 
     onSelectTask(e) {
-      const selectedIndex = e.target.options.selectedIndex;
-      this.setState({
-        task_id: e.target.options[selectedIndex].getAttribute('datakey')
-      });
+        const selectedTaskIndex = e.target.options.selectedIndex;
+        this.setState({
+            task_id: e.target.options[selectedTaskIndex].getAttribute('datakey')
+        });
     }
 
     componentWillMount() {
         this.reloadTasks();
-	this.reloadCompilers();
+        this.reloadCompilers();
         if (!sessionStorage.getItem('token'))
-            this.signOut()
-        else { this.getSubmitList() }
+            this.signOut();
+        else this.getSubmitList();
     }
 
     reloadTasks() {
         let self = this;
         axios.get('/tasks')
             .then(function(response) {
-
                 self.setState({
                     tasks: response.data
-                        .map((k) => <option key={k.name} datakey={k.id} value={k.name}>{k.name}</option>)
+                        .map((task) => <option key={task.name} datakey={task.id} value={task.name}>{task.name}</option>)
                 })
             });
     }
@@ -139,26 +161,36 @@ export default class App extends Component {
         let self = this;
         axios.get('/compilers')
             .then(function(response) {
-                console.log(response.data)
                 self.setState({
                     compilers: response.data
-                      .map((k) => <option key={k.id} datakeycompiler={k.id} value={k.name}>{k.name}</option>)
+                        .map((compiler) =>
+                            <option key={compiler.id} datakeycompiler={compiler.id} value={compiler.name}>
+                                {compiler.name}
+                            </option>)
                 })
-            });
+            })
     }
 
-    signIn() {
+    signIn(){
         let self = this;
         const credentials = {
             login: document.getElementById("login-form").value,
             password: document.getElementById("password-form").value
         };
-        axios.post('/auth/login', credentials)
-            .then(function(response) {
-                self.setState({ loggedIn : true, username: credentials.login });
-                sessionStorage.setItem('username', credentials.login);
-                sessionStorage.setItem('token', response.data.token);
-            });
+        let login_status = '';
+        let password_status = '';
+        if (credentials.login === '') login_status = 'error';
+        if (credentials.password === '') password_status = 'error';
+        this.setState({ status_signin: { login : login_status, password : password_status } });
+        if (credentials.login !== '' && credentials.password !== '') {
+            axios.post('/auth/login', credentials)
+                .then(function (response) {
+                    this.setState({ status_signin: { login : null, password : null } });
+                    self.setState({loggedIn: true, username: credentials.login});
+                    sessionStorage.setItem('username', credentials.login);
+                    sessionStorage.setItem('token', response.data.token);
+                });
+        }
     }
 
     verifyUser() {
@@ -169,10 +201,7 @@ export default class App extends Component {
             data: { 'username' : this.state.username }
         })
             .then(function(response) {
-                if (response.status === 200)
-                    console.log(response.data);
-                if (response.status === 400)
-                    this.signOut();
+                if (response.status === 400) this.signOut();
             });
     }
 
@@ -197,30 +226,27 @@ export default class App extends Component {
 
 
 
-    sendProgram(e) {
+    sendProgram() {
         this.verifyUser();
-	console.log("file");
-        console.log(this.state.file);
         const data = {
             filename: document.getElementById("fileName").value,
             username: this.state.username,
             task_id: this.state.task_id,
             compiler_id: this.state.compiler_id,
-            source: document.getElementById("programCode").value,
-            // file: file_
+            source: document.getElementById("programCode").value
         };
         let filename_status = '';
         let source_status = '';
-        if (data.filename === '') filename_status = 'error'
-        if (data.source === '') source_status = 'error'
-        this.setState({ status: { filename: filename_status, source: source_status } });
+        if (data.filename === '') filename_status = 'error';
+        if (data.source === '') source_status = 'error';
+        this.setState({ status: { filename : filename_status, source : source_status } });
         if (data.filename !== '' && data.source !== '') {
             this.setState({ loading : true });
             let self = this;
             axios.post('/compile', data)
                 .then(function (response) {
                     console.log(response);
-                    self.setState({ loading : false, status : { filename: '', source: '' } });
+                    self.setState({ loading : false, status : { filename : '', source : '' } });
                     self.generateAlert('success', 'Program sent successfully');
                 })
                 .catch(function (error) {
@@ -276,7 +302,7 @@ export default class App extends Component {
                 </Modal.Header>
                 <Modal.Body>
                     <Form horizontal>
-                        <FormGroup controlId="login-form">
+                        <FormGroup controlId="login-form" validationState={this.state.status_signin.login}>
                             <Col  sm={2}>
                                 Login
                             </Col>
@@ -289,8 +315,7 @@ export default class App extends Component {
                                 <FormControl.Feedback />
                             </Col>
                         </FormGroup>
-
-                        <FormGroup controlId="password-form">
+                        <FormGroup controlId="password-form" validationState={this.state.status_signin.password}>
                             <Col  sm={2}>
                                 Password
                             </Col>
@@ -303,7 +328,6 @@ export default class App extends Component {
                                 <FormControl.Feedback />
                             </Col>
                         </FormGroup>
-
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
@@ -315,7 +339,7 @@ export default class App extends Component {
             </Modal>
             <Grid>
                 <div>
-                    <Well bsSize="large">
+                    <Well>
                         <FormGroup controlId="taskName">
                             <ControlLabel>Choose task</ControlLabel>
                             <FormControl componentClass="select" onChange={this.onSelectTask}>
@@ -351,12 +375,11 @@ export default class App extends Component {
                             {this.state.loading ? 'Loading...' : 'Send to server'}
                         </Button>
                     </Well>
-		        <PanelGroup activeKey={this.state.activeKey} onSelect={this.selectActiveKey} accordion>
-		            {this.state.submitList}
-		        </PanelGroup>
+                    <PanelGroup id='submitList' activeKey={this.state.activeKey} onSelect={this.setActiveKey} accordion>
+                        {this.state.submitList}
+                    </PanelGroup>
                 </div>
             </Grid>
-
         </div>;
     }
 }
