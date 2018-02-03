@@ -25,8 +25,8 @@ export default class App extends Component {
             loggedIn: !!sessionStorage.getItem('token'),
             tasks: [],
             compilers: [],
-            compiler_id: null,
-            task_id: null,
+            compiler_id: '1',
+            task_id: '1',
             loading: false,
             alerts: []
         };
@@ -43,7 +43,7 @@ export default class App extends Component {
     onSelectCompiler(e) {
       const selectedInd = e.target.options.selectedIndex;
       this.setState({
-        compiler_id: e.target.options[selectedInd].getAttribute('datakey')
+        compiler_id: e.target.options[selectedInd].getAttribute('datakeycompiler')
       });
     }
 
@@ -82,7 +82,7 @@ export default class App extends Component {
                 console.log(response.data)
                 self.setState({
                     compilers: response.data
-                      .map((k) => <option key={k.id} datakey={k.id} value={k.name}>{k.name}</option>)
+                      .map((k) => <option key={k.id} datakeycompiler={k.id} value={k.name}>{k.name}</option>)
                 })
             });
     }
@@ -147,11 +147,12 @@ export default class App extends Component {
         const data = {
             filename: document.getElementById("fileName").value,
             username: this.state.username,
-            task_id: '2',//document.getElementById("taskName").value,
+            task_id: this.state.task_id,
             compiler_id: this.state.compiler_id,
             source: document.getElementById("programCode").value,
             // file: file_
         };
+        console.log(data);
         let self = this;
         axios.post('/compile', data)
             .then(function (response) {
