@@ -73,10 +73,7 @@ export default class App extends Component {
 
                                     <p>Submit time: {submit.commit_time}</p>
 
-                                    {"Result code"}
-                                    <Well bsSize='sm'>
-                                        {submit.result_code}
-                                    </Well>
+                                    <p>Result code: {submit.result_code}</p>
 
                                     {"Output"}
                                     <Well bsSize='sm'>
