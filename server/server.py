@@ -37,6 +37,20 @@ def encode(string):
 def index():
  return render_template("index.html")
 
+@app.route('/get_tested_list', methods=['POST'])
+def get_tested():
+    username = request.json['username']
+    with DatabaseConnection() as dbconn:
+        uid = dbconn.get_uid_by_username(username)
+        print(uid)
+        return dbconn.query_commits_by_user_id(uid)
+
+@app.route('/delete_submit', methods=['POST'])
+def delete_submit():
+    submit_id = request.json['submit_id']
+    with DatabaseConnection() as dbconn:
+        dbconn.delete_commit_by_id(submit_id)
+        return ''
 
 @app.route('/compile', methods=['POST'])
 def post_program():

@@ -13,9 +13,12 @@ import FormControl from 'react-bootstrap/lib/FormControl'
 import Form from 'react-bootstrap/lib/Form'
 import Col from 'react-bootstrap/lib/Col'
 import HelpBlock from 'react-bootstrap/lib/HelpBlock'
-import ButtonGroup from "react-bootstrap/lib/ButtonGroup"
-import NavItem from "react-bootstrap/lib/NavItem"
-import Nav from "react-bootstrap/lib/Nav"
+import ButtonGroup from 'react-bootstrap/lib/ButtonGroup'
+import NavItem from 'react-bootstrap/lib/NavItem'
+import Nav from 'react-bootstrap/lib/Nav'
+import Panel from 'react-bootstrap/lib/Panel'
+import ButtonToolbar from 'react-bootstrap/lib/ButtonToolbar'
+import PanelGroup from 'react-bootstrap/lib/PanelGroup' 
 
 export default class App extends Component {
     constructor() {
@@ -28,16 +31,77 @@ export default class App extends Component {
             compiler_id: '1',
             task_id: '1',
             loading: false,
-            alerts: []
+            alerts: [],
+            status: {
+                filename: '',
+                source: ''
+            },
+	    file: null,
+	    submitList: []
         };
         this.signIn = this.signIn.bind(this);
         this.signUp = this.signUp.bind(this);
         this.signOut = this.signOut.bind(this);
         this.sendProgram = this.sendProgram.bind(this);
         this.generateAlert = this.generateAlert.bind(this);
-        this.reloadCompilers = this.reloadCompilers.bind(this)
-        this.onSelectCompiler = this.onSelectCompiler.bind(this)
-        this.onSelectTask = this.onSelectTask.bind(this)
+        this.reloadCompilers = this.reloadCompilers.bind(this);
+        this.onSelectCompiler = this.onSelectCompiler.bind(this);
+        this.onSelectTask = this.onSelectTask.bind(this);
+	this.uploadFile = this.uploadFile.bind(this);
+        this.deleteSubmit = this.deleteSubmit.bind(this);
+    }
+
+    uploadFile() {
+        let data = new FormData();
+	data.append('file', e.target.files[0]);
+        this.setState({ file : data });
+    }
+
+    getSubmitList() {
+        let self = this;
+        axios.post('/get_tested_list', { username: sessionStorage.getItem('username') })
+	    .then(function(response) {
+	       console.log(response);
+	       self.setState({
+                    submitList: response.data !== null ?
+                        response.data
+                            .map((submit) =>
+                                <Panel key={submit.commit_id}> 
+                                    <Panel.Heading toggle><ControlLabel>{submit.filename}</ControlLabel></Panel.Heading>
+				    <Panel.Body>
+                                    <p>Status: {submit.status}</p>
+
+                                    <p>Submit time: {submit.commit_time}</p>
+
+                                    {"Result code"}
+                                    <Well bsSize='sm'>
+                                        {submit.result_code}
+                                    </Well>
+
+                                    {"Output"}
+                                    <Well bsSize='sm'>
+                                        {submit.output}
+                                    </Well>
+
+                                    <ButtonToolbar>
+                                        <Button bsStyle="danger" onClick={() => self.deleteSubmit(submit.commit_id)}>
+                                            Delete submit
+                                        </Button>
+                                    </ButtonToolbar>
+				    </Panel.Body>
+                                </Panel>
+                            )
+                        : null  
+            })
+	})
+    }
+
+    deleteSubmit(id) {
+        let self = this;
+        axios.post('/delete_submit', { 'submit_id' : id })
+	    .then(function(response) {
+		self.getSubmitList();
+            })
     }
 
     onSelectCompiler(e) {
@@ -55,12 +119,11 @@ export default class App extends Component {
     }
 
     componentWillMount() {
+        this.reloadTasks();
+	this.reloadCompilers();
         if (!sessionStorage.getItem('token'))
             this.signOut()
-        else {
-            this.reloadTasks();
-            this.reloadCompilers();
-        }
+        else { this.getSubmitList() }
     }
 
     reloadTasks() {
@@ -139,11 +202,8 @@ export default class App extends Component {
 
     sendProgram(e) {
         this.verifyUser();
-        this.setState({ loading : true });
-        // let file_ = new FormData();
-        // file_.append('file', e.target.files[0]);
-        var thisKey;
-
+	console.log("file");
+        console.log(this.state.file);
         const data = {
             filename: document.getElementById("fileName").value,
             username: this.state.username,
@@ -152,19 +212,27 @@ export default class App extends Component {
             source: document.getElementById("programCode").value,
             // file: file_
         };
-        console.log(data);
-        let self = this;
-        axios.post('/compile', data)
-            .then(function (response) {
-                console.log(response);
-                self.setState({ loading : false });
-                self.generateAlert("success", "Program sent successfully");
-            })
-            .catch(function (error) {
-                console.log(error);
-                self.setState({ loading : false });
-                self.generateAlert("danger", "Error. Please, try again");
-            });
+        let filename_status = '';
+        let source_status = '';
+        if (data.filename === '') filename_status = 'error'
+        if (data.source === '') source_status = 'error'
+        this.setState({ status: { filename: filename_status, source: source_status } });
+        if (data.filename !== '' && data.source !== '') {
+            this.setState({ loading : true });
+            let self = this;
+            axios.post('/compile', data)
+                .then(function (response) {
+                    console.log(response);
+                    self.setState({ loading : false, status : { filename: '', source: '' } });
+                    self.generateAlert('success', 'Program sent successfully');
+                })
+                .catch(function (error) {
+                    console.log(error);
+                    self.setState({ loading : false });
+                    self.generateAlert('danger', 'Error. Please, try again');
+                });
+        }
+        this.getSubmitList();
     }
 
     generateAlert(type, massage) {
@@ -257,22 +325,23 @@ export default class App extends Component {
                                 {this.state.tasks}
                             </FormControl>
                         </FormGroup>
-                        <FormGroup controlId="fileName">
+                        <FormGroup controlId="fileName" validationState={this.state.status.filename}>
                             <ControlLabel>Enter the file name</ControlLabel>
                             <FormControl
+                                required
                                 type="text"
                                 placeholder="Enter text"
                             />
                             <FormControl.Feedback />
                             <HelpBlock>If you insert your code into the form below</HelpBlock>
                         </FormGroup>
-                        <FormGroup controlId="programCode">
+                        <FormGroup controlId="programCode" validationState={this.state.status.source}>
                             <ControlLabel>Code area</ControlLabel>
                             <FormControl componentClass="textarea" placeholder="Paste your code here" />
                         </FormGroup>
                         <FormGroup controlId="file">
                             <ControlLabel>Upload file</ControlLabel>
-                            <input value="" type="file" id="file" name="file" />
+                            <FormControl componentClass="input" type="file" id="file" name="file" onChange={this.uploadFile} />
                             <HelpBlock>Attach file without copying</HelpBlock>
                         </FormGroup>
                         <FormGroup controlId="compilerName">
@@ -285,6 +354,9 @@ export default class App extends Component {
                             {this.state.loading ? 'Loading...' : 'Send to server'}
                         </Button>
                     </Well>
+		        <PanelGroup activeKey={this.state.activeKey} onSelect={this.selectActiveKey} accordion>
+		            {this.state.submitList}
+		        </PanelGroup>
                 </div>
             </Grid>
 
