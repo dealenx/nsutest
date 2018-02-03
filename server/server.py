@@ -24,8 +24,6 @@ class SendNotTestedCommit(Resource):
 class PushResult(Resource):
     def post(self):
         with DatabaseConnection() as dbconn:
-            print(request.headers)
-            print(request.data)
             dbconn.update_result(request.data.decode('utf8'))
         return ''
 
