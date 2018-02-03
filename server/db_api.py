@@ -201,6 +201,18 @@ class DatabaseConnection(object):
             self.update_status(dict_commits[0]["commit_id"], "TESTING")
             return json.dumps(dict_commits[0])
 
+#######################################################
+# DELETE STRING BY COMMIT_ID
+
+    def delete_commit_by_id(self, commit_id):
+        if self.query_commits_by_commit_id(data['commit_id']) is []:
+            raise Exception('Commit with specified ID doesnt exists!')
+
+        query=('DELETE FROM commits WHERE commit_id=%s')
+        self._db_cursor.execute(query, (commit_id,))
+        self._db_connection.commit()
+
+
 
 #######################################################:3
 # functions for user control
