@@ -28,7 +28,11 @@ export default class App extends Component {
             compiler_id: '1',
             task_id: '1',
             loading: false,
-            alerts: []
+            alerts: [],
+            status: {
+                filename: '',
+                source: ''
+            }
         };
         this.signIn = this.signIn.bind(this);
         this.signUp = this.signUp.bind(this);
@@ -139,11 +143,8 @@ export default class App extends Component {
 
     sendProgram(e) {
         this.verifyUser();
-        this.setState({ loading : true });
         // let file_ = new FormData();
         // file_.append('file', e.target.files[0]);
-        var thisKey;
-
         const data = {
             filename: document.getElementById("fileName").value,
             username: this.state.username,
@@ -152,19 +153,26 @@ export default class App extends Component {
             source: document.getElementById("programCode").value,
             // file: file_
         };
-        console.log(data);
-        let self = this;
-        axios.post('/compile', data)
-            .then(function (response) {
-                console.log(response);
-                self.setState({ loading : false });
-                self.generateAlert("success", "Program sent successfully");
-            })
-            .catch(function (error) {
-                console.log(error);
-                self.setState({ loading : false });
-                self.generateAlert("danger", "Error. Please, try again");
-            });
+        let filename_status = '';
+        let source_status = '';
+        if (data.filename === '') filename_status = 'error'
+        if (data.source === '') source_status = 'error'
+        this.setState({ status: { filename: filename_status, source: source_status } });
+        if (data.filename !== '' && data.source !== '') {
+            this.setState({ loading : true });
+            let self = this;
+            axios.post('/compile', data)
+                .then(function (response) {
+                    console.log(response);
+                    self.setState({ loading : false, status : { filename: '', source: '' } });
+                    self.generateAlert('success', 'Program sent successfully');
+                })
+                .catch(function (error) {
+                    console.log(error);
+                    self.setState({ loading : false });
+                    self.generateAlert('danger', 'Error. Please, try again');
+                });
+        }
     }
 
     generateAlert(type, massage) {
@@ -257,16 +265,17 @@ export default class App extends Component {
                                 {this.state.tasks}
                             </FormControl>
                         </FormGroup>
-                        <FormGroup controlId="fileName">
+                        <FormGroup controlId="fileName" validationState={this.state.status.filename}>
                             <ControlLabel>Enter the file name</ControlLabel>
                             <FormControl
+                                required
                                 type="text"
                                 placeholder="Enter text"
                             />
                             <FormControl.Feedback />
                             <HelpBlock>If you insert your code into the form below</HelpBlock>
                         </FormGroup>
-                        <FormGroup controlId="programCode">
+                        <FormGroup controlId="programCode" validationState={this.state.status.source}>
                             <ControlLabel>Code area</ControlLabel>
                             <FormControl componentClass="textarea" placeholder="Paste your code here" />
                         </FormGroup>

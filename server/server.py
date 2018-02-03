@@ -106,4 +106,4 @@ def get_tasks():
         return dbconn.get_task_list()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5005, debug=True)
+    app.run(host='0.0.0.0', port=5009, debug=True)
