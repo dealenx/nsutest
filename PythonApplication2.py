@@ -7,49 +7,54 @@ import http.client
 import json
 import requests
 import codecs
-#!/usr/bin/env python
-# -*- coding: utf8 -*-
+import time
+
 class Compiler():
-   # def __init__(self,name,lang,task_id):
-   #     self.compilers_dictionary = {"cl":'"D:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\cl.exe" '} #TODO : add more compilers
-   #     self.task_id = task_id
-   #     self.file = name
-   #     self.batname = "help.bat"
-   #     self.exe_name = self.file[0:self.file.find(".")] +".exe" #TODO: it looks so ugly....
-   #     self.verdict = "OK" 
-   #     self.tests_dictionary = {     1:"C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2\\test1",
-   #                                   2:"C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2\\test2", 
-   #                                   3:"C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2\\test3",
-   #                                   4:"C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2\\test4"
-   #                             }                                                                                                                                   
-   #     fin = open(self.batname,"w")
-   #     self.winkill_address = "C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2\\WinKill3.3.0.exe"
-   #    if lang=="cl":
-   #         fin.write('call "D:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\vcvars32.bat"' + '\n')
-   #     fin.write(self.compilers_dictionary[lang]+ '"'  +"C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2"+'\\'+ name+ '"')
-   #     fin.close()
-    
-    def __init__(self, json_file):
-        parsed_string = json.loads(json_file)
-        self.compilers_dictionary = {3:'"D:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\cl.exe" '} #TODO : add more compilers
-        self.task_id = parsed_string["task_id"]
-        self.file =   parsed_string["filename"]
-        code_file = open (self.file,"w")
-        code_file.write(parsed_string["source"])
-        code_file.close()
-        self.lang = parsed_string["compiler_id"]
+    def __init__(self,name,lang,task_id,commit_id):
+        self.compilers_dictionary = {2:'"D:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\cl.exe" '} #TODO : add more compilers
+        self.task_id = task_id
+        self.file = name
+        self.lang = lang
         self.batname = "help.bat"
         self.exe_name = self.file[0:self.file.find(".")] +".exe" #TODO: it looks so ugly....
         self.verdict = "OK" 
-        self.tests_dictionary = {     1:"C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2\\test1",
-                                      2:"C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2\\test2", 
-                                      3:"C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2\\test3",
-                                      4:"C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2\\test4"
-                                } 
-                                    
-        #help .bat file to compile files                                                                                              
+        self.tests_dictionary = {   #  8:"C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2\\test1",
+                                   #   9:"C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2\\test2", 
+                                   #   3:"C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2\\test3",
+                                   ##   4:"C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2\\test4",
+                                   #   7:"C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2\\test7",
+                                   #   2:"C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2\\test8",  
+                                      1:"C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2\\test9",
+                                      3:"C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2\\test10",
+                                      4:"C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2\\test11",
+                                      5:"C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2\\test11"                                           
+                                }                                                                                                                                   
         fin = open(self.batname,"w")
-        if self.lang==3:
+        self.winkill_address = "C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2\\WinKill3.3.0.exe"
+        if self.lang==2:
+            fin.write('call "D:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\vcvars32.bat"' + '\n')
+        fin.write(self.compilers_dictionary[self.lang]+ '"'  +"C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2"+'\\'+ self.file+ '"')
+        fin.close()
+        self.commit_id = commit_id
+
+
+
+    def from_json(self, json_file):
+        parsed_string = json_file
+        self.lang = parsed_string["compiler_id"]
+        self.compilers_dictionary = {2:'"D:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\cl.exe" '} #TODO : add more compilers
+        self.task_id = parsed_string["task_id"]
+        self.file =   parsed_string["filename"]
+        print(parsed_string["source"])
+        code_file = open (self.file,"w")
+        code_file.write(parsed_string["source"])
+        code_file.close()
+        self.commit_id = parsed_string["commit_id"]
+        self.batname = "help.bat"
+        self.exe_name = self.file[0:self.file.find(".")] +".exe" #TODO: it looks so ugly....
+        self.verdict = "OK" 
+        fin = open(self.batname,"w")
+        if self.lang==2:
             fin.write('call "D:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\vcvars32.bat"' + '\n')
      
         fin.write(self.compilers_dictionary[self.lang]+ '"'  +"C:\\Users\\akutalev\\Documents\\Visual Studio 2015\\Projects\\PythonApplication2\\PythonApplication2"+'\\'+ self.file+ '"')
@@ -62,8 +67,10 @@ class Compiler():
         except OSError:
             return("Unknown compiler")
         except subprocess.CalledProcessError as exc:
-            print('\n\n\n\n\n')
-            return exc.stdout.decode("cp866")
+            compile_error = exc.stdout.decode("cp866")
+            last_file = compile_error.rfind(self.file)
+            self.verdict = compile_error[last_file:]
+            return  "COMPILATION_ERROR"
         return "OK"
 
 
@@ -83,6 +90,7 @@ class Compiler():
 
 
         for tests_number in range(len(input_files)):
+            print("Current test:",tests_number+1)
             oldfile = os.path.join(path,str(tests_number+1)+".in")
             newfile = os.path.join(path,"in"+str(tests_number+1)+".txt")
             os.rename(oldfile,newfile)
@@ -92,25 +100,33 @@ class Compiler():
             current_input =  open(current_input_name,"r")
             outfile = open("task_out.txt","w")
 
-            cmd_string =  " -m 10 -t 1 -r " + self.exe_name + " -n no_config.txt" #TODO: сделать считывание из файла конфига
+            cmd_string =  " -m 20000000 -t 1 -r " + self.exe_name + " -n no_config.txt" #TODO: сделать считывание из файла конфига
             command_list = cmd_string.split()
             command_list.insert(0,self.winkill_address)
             try:
                 testing_process = subprocess.run(command_list,stdout =outfile,stdin =current_input,shell = True)
                 testing_process.check_returncode()              
             except subprocess.CalledProcessError as exc: 
-                return_codes = {1:": Runtime Error",
-                                2:": Time limit",
-                                3:": Memory limit",
-                                4:": System time limit",
-                                5:": Security violation"                   
+                return_codes = {1:"RUNTIME_ERROR",
+                                2:"TIME_LIMIT",   
+                                3:"MEMORY_LIMIT",
+                                4:"SYSTEM_TIME_LIMIT",
+                                5:"SECURITY_VIOLATION"                   
                                }
-
                 if exc.returncode in return_codes:
                     current_input.close();
                     outfile.close()
                     os.rename(newfile,oldfile)   
-                    return "Test "+str(tests_number+1)+return_codes[exc.returncode]
+                    self.verdict = "TEST :" + str(tests_number+1)
+                    return return_codes[exc.returncode]
+            else:                                          #maybe the wost strings in this project.... need idea how to split stdout winkill and testing program
+                current_input.close()
+                outfile.close()
+                outfile = open("task_out.txt","w")
+                current_input = open(current_input_name,"r")
+                subprocess.run(self.exe_name,stdout = outfile,stdin = current_input)
+
+
 
             current_input.close();
             outfile.close()
@@ -130,44 +146,63 @@ class Compiler():
                     error_message = exc.stderr.decode("utf-8","ignore")
                     error_flag = error_message.split(' ',1)[0]
                     if error_flag == "FAIL":
-                        return "Invalid input on test:" + str(tests_number+1) + '\n'
+                         self.verdict = "TEST :" + str(tests_number+1)
+                         return "INVALID_INPUT"
+                       # return "Invalid input on test:" + str(tests_number+1) + '\n'
                     elif error_flag == "wrong":
-                        return "Test "+str(tests_number+1) + ": Wrong Answer"
-                    return exc.stderr.decode("utf-8","ignore")
-
+                         self.verdict = "TEST :" + str(tests_number+1)
+                         return "WRONG_ANSWER"
                 os.remove(testing_bat_file_name)
 
             else:
                 correct_strings = open(path +"\\" + str(tests_number+1)+".out").read().splitlines(1)
                 answer_strings = open("task_out.txt").read().splitlines(1)
-                if answer_strings[-1][-1] == '\n':
+                print(correct_strings)
+                print(answer_strings)
+
+                if answer_strings!= [] and (answer_strings[-1][-1] == '\n' or answer_strings[-1][-1] ==  ' '):
                    answer_strings[-1]=answer_strings[-1][:-1]
+                if correct_strings!=[] and (correct_strings[-1][-1] == '\n' or correct_strings[-1][-1] == ' '):
+                   correct_strings[-1]=correct_strings[-1][:-1]
+
+                   print(correct_strings)
                 if correct_strings!=answer_strings:
                    os.rename(newfile,oldfile)
-                   return str(tests_number+1)+" Wrong answer" +'\n'
-                else:
-                   os.rename(newfile,oldfile)
-                   return "OK"
+                   self.verdict = "TEST :" + str(tests_number+1)  
+                   return "WRONG_ANSWER"
+                  # return str(tests_number+1)+" Wrong answer" +'\n'
+               # else:
+                   #os.rename(newfile,oldfile)
+                   
 
             os.rename(newfile,oldfile)
         return "OK"
           
-#TestCode = Compiler("adsd.c","cl",2)
-#compile_rezult= TestCode.compile()
-#if compile_rezult == "OK":
-#    x = TestCode.testing()
-#
-#    print('\n\n\n\n')
-#    print (x)
-h1 = http.client.HTTPConnection("10.4.0.113:1914")
-h1.request("GET","")
-r1 = h1.getresponse()
-compilers = ["Visual Studio Compiler"];
-resp = requests.get("http://10.4.0.113:5001/commit/not_tested")
-data = json.loads(resp.text)
-print (data)
-TestCode = Compiler(resp.text)
-compile_rezult= TestCode.compile()
-print(compile_rezult)
-if compile_rezult == "OK":
-    x = TestCode.testing()
+TestCode = Compiler("main.c",2,7,100500)
+rezult= TestCode.compile()
+
+while (1):
+   print ("Request for task","\n")
+   sub = requests.get("http://10.4.0.113:5005/get_not_tested_submit")
+   submit = json.loads(sub.text)
+   print (submit)
+   if submit != "[]":
+        submit = json.loads(submit) 
+        if submit['compiler_id']!=2:
+            print("mdee\n")
+            time.sleep(5)
+        else:
+            TestCode.from_json(submit)
+            rezult = TestCode.compile()
+            if rezult == "OK":
+                rezult = TestCode.testing()
+                print('\n\n\n\n')
+                print(rezult) 
+                print('\n\n\n\n')
+                print(TestCode.verdict)
+                print('\n\n\n\n')
+            post_req = requests.post("http://10.4.0.113:5005/push_result",json = {"commit_id":TestCode.commit_id,"result_code":rezult,"output":TestCode.verdict})
+            print(rezult, TestCode.verdict)
+   else:
+        time.sleep(5)
+
