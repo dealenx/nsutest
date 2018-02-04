@@ -148,9 +148,10 @@ class DatabaseConnection(object):
 #######################################################
 # Редактирование коммитов
 
+    #works
     def update_status(self, commit_id, status):
 
-        if self.query_commits_by_commit_id(commit_id) is []:
+        if not json.loads(self.query_commits_by_commit_id(commit_id)):
             raise Exception('Commit with specified ID doesnt exists!')
 
         if not self.validate_status(status):
@@ -167,6 +168,7 @@ class DatabaseConnection(object):
 #    "result_code": String,
 #    "output": String
 #}
+    #works
     def update_result(self, json_data):
         data = json.loads(json_data)
 
@@ -175,17 +177,16 @@ class DatabaseConnection(object):
 	    not 'output' in data:
                 raise Exception('Invalid JSON recieved!')
 
-        if self.query_commits_by_commit_id(data['commit_id']) is []:
+        if not json.loads(self.query_commits_by_commit_id(data['commit_id'])):
             raise Exception('Commit with specified ID doesnt exists!')
 
-        if not self.validate_result_code:
+        if not self.validate_result_code(data["result_code"]):
             raise Exception('Invalid result code specified!')
 
         query="UPDATE commits SET status='TESTED', result_code=%(result_code)s, output=%(output)s WHERE commit_id=%(commit_id)s"
 
         self._db_cursor.execute(query, data)
         self._db_connection.commit()
-        print(data)
 
 
 #######################################################
@@ -196,16 +197,19 @@ class DatabaseConnection(object):
         dict_commits = json.loads(json_commits)
 
         if not dict_commits:
-            return "[]"
+            return json.dumps(dict_commits)
         else:
             self.update_status(dict_commits[0]["commit_id"], "TESTING")
             return json.dumps(dict_commits[0])
 
+
 #######################################################
 # DELETE STRING BY COMMIT_ID
 
+    #works
     def delete_commit_by_id(self, commit_id):
-        if self.query_commits_by_commit_id(commit_id) is []:
+
+        if not json.loads(self.query_commits_by_commit_id(commit_id)):
             raise Exception('Commit with specified ID doesnt exists!')
 
         query=('DELETE FROM commits WHERE commit_id=%s')
@@ -263,9 +267,46 @@ class DatabaseConnection(object):
 
         return j_result
 
+########################################################
+# getting players statistic
+
+    def get_statistics(self):
+        self._db_cursor.execute("SELECT user_id, username FROM users")
+
+        out = self._db_cursor.fetchall()
+        ids = [i[0] for i in out]
+        names = [i[1] for i in out]
+
+        self._db_cursor.execute("SELECT task_id FROM tasks")
+        tasks =  [i[0] for i in self._db_cursor.fetchall()]
+
+        result = [0] * len(ids)
+
+        query=("SELECT * FROM commits WHERE user_id=%s AND task_id=%s AND result_code='OK'")
+
+        k = 0
+        for i in ids:
+            for j in tasks:
+                self._db_cursor.execute(query, (i, j))
+                if self._db_cursor.fetchall():
+                    result[k] += 1
+            k += 1
+
+        result_list = []
+        for n in range (0, len(ids) - 1):
+            result_list.append({"username": names[n], "score": result[n]})
+
+        return json.dumps(result_list)
+
+
 
 
 if __name__ == '__main__':
     with DatabaseConnection() as dbconn:
-        print(dbconn.get_compiler_list())
+        #dbconn.update_result('{"commit_id": 26, "result_code":"OK", "output":"OK"}')
+        #dbconn.update_status(13, 'SUBMITTED')
+        #dbconn.delete_commit_by_id(140)
+
+        #print(dbconn.query_commits_by_commit_id(7))
+        dbconn.get_statistic()
 

@@ -24,7 +24,7 @@ class SendNotTestedCommit(Resource):
 class PushResult(Resource):
     def post(self):
         with DatabaseConnection() as dbconn:
-            dbconn.update_result(request.data.decode('utf8'))
+            dbconn.update_result(request.data.decode('utf-8'))
         return ''
 
 api.add_resource(SendNotTestedCommit, '/get_not_tested_submit')
@@ -35,14 +35,19 @@ def encode(string):
 
 @app.route('/')
 def index():
- return render_template("index.html")
+    return render_template("index.html")
+
+@app.route('/get_statistics', methods=['GET'])
+def get_statistics():
+    with DatabaseConnection() as dbconn:
+        return dbconn.get_statistics()
 
 @app.route('/get_tested_list', methods=['POST'])
 def get_tested():
     username = request.json['username']
+    print(username)
     with DatabaseConnection() as dbconn:
         uid = dbconn.get_uid_by_username(username)
-        print(uid)
         return dbconn.query_commits_by_user_id(uid)
 
 @app.route('/delete_submit', methods=['POST'])
