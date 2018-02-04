@@ -1,7 +1,7 @@
-#NSUtest
+# NSUtest
 
 
-##DECRIPTION
+## DECRIPTION
 
 Project NSUtest is online service that provides you with different interesting olympiade tasks that you are suggested to solve.
 
@@ -10,14 +10,14 @@ After all user receives the verdict and if it's "OK" he increases the number of 
 Unregistered online user is not able to test his solutions.
 
 
-##COMPONENTS
+## COMPONENTS
 
 * *Frontend* - Javascript + React
 
 * *Backend* - Python + Flask
   
   
-##TEAM
+## TEAM
 
 * Anastasiya Shadrina - [shadrina](http://github.com/shadrina)
 * Andrew Kutalev - [ankutalev](http://github.com/ankutalev)
