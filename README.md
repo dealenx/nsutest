@@ -11,9 +11,8 @@ Unregistered online user is not able to test his solutions.
 
 
 COMPONENTS
-
-  Frontend - Javascript + React
-  Backend - Python + Flask
+Frontend - Javascript + React
+Backend - Python + Flask
   
   
 TEAM
