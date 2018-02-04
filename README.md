@@ -11,16 +11,22 @@ Unregistered online user is not able to test his solutions.
 
 
 COMPONENTS
+
 Frontend - Javascript + React
+
 Backend - Python + Flask
   
   
 TEAM
 
 Anastasiya Shadrina - github.com/shadrina
+
 Andrew Kutalev - github.com/ankutalev
+
 Ayya Galieva - github.com/AyyaGalieva
+
 Daniil Gorodiloff - github.com/dealenx
+
 Sergey Semenov - github.com/lvfx00
 
 Curator - Irtegov Dmitry Valentinovich
